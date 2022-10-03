@@ -84,12 +84,12 @@ class MqttToRosBridge(Thread):
         self.client.loop_start()
         self.client.subscribe('/exvis/sub/#')
         print(f'MQTT topic:')
-        print(f'            /exvis/sub/#')
+        print(f'            /exvis/sub/#\n')
 
 def main():
     try:
-        print('\n--------------------------------- Start the ROS-MQTT bridge ---------------------------------\n\n')
-        print('Note : Press [Ctrl+c] to stop the process.')
+        print('\n--------------------------------- Start the ROS-MQTT bridge ---------------------------------\n')
+        print('Note : Press [Ctrl+c] to stop the process.\n')
         rospy.init_node('bridge_node', anonymous=True)
         t1 = RosToMqttBridge()
         t2 = MqttToRosBridge()
