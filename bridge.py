@@ -3,7 +3,7 @@ from selectors import EpollSelector
 import threading
 import rospy
 import sys
-import threading
+from threading import Thread, Timer
 import paho.mqtt.client as mqtt
 from importlib import import_module
 from std_msgs.msg import String, Int32, Int32MultiArray, Float32MultiArray 
@@ -20,9 +20,9 @@ def _start_mqtt():
 def _start_ros():
     print('{Ros->Mqtt} Waiting for new message ...')
 
-class RosToMqttBridge(threading.Thread):
+class RosToMqttBridge(Thread):
     def __init__(self):
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
 
         # Build the connection to MQTT broker
         self.host       = 'localhost'
@@ -30,21 +30,22 @@ class RosToMqttBridge(threading.Thread):
         self.qos        = 0
         self.client                 = mqtt.Client('Ros-to-Mqtt')
         self.client.connect(self.host, self.port)
+        self._ros_timer = Timer(1.0, _start_ros)
+        self._ros_timer.start()
 
         # List the topic names and type of these message
         tp_list = rospy.get_published_topics()
-        print(tp_list)
         print(f'ROS topic :')
         for topic, msg_name in tp_list:
             msg_pkg, msg_type_name = msg_name.split('/')
-            if msg_type_name != 'Log':
+            if msg_type_name != 'Log' and msg_type_name != 'Clock':
                 print(f'            {topic} : message {msg_type_name}')
                 msg_type = getattr(import_module(msg_pkg + '.msg'), msg_type_name)
                 rospy.Subscriber(topic, msg_type, self._ros_callback, topic)
 
     def _ros_callback(self, message, topic):
         self._ros_timer.cancel()
-        self._ros_timer = threading.Timer(2.0, _finished_from_ros)
+        self._ros_timer = Timer(2.0, _finished_from_ros)
         # Change the message type of ROS, recommened convert to string type
         if type(message.data) == tuple:
             ros_message = str(message.data)
@@ -56,25 +57,18 @@ class RosToMqttBridge(threading.Thread):
 
     def run(self):
         self.client.loop_start()
-        self._ros_timer = threading.Timer(1.0, _start_ros)
-        self._ros_timer.start()
         rospy.spin()
-        # try:
-        #     rospy.spin()
-        # except KeyboardInterrupt:
-        #     self.client.loop_stop()
-        #     self.client.disconnect()
-        #     # with open(str(datetime.now) + '.json', 'w') as json_file:
-        #     #     json.dump(mqtt_client.exo_data, json_file)
-        #     sys.exit(1)
 
-class MqttToRosBridge(threading.Thread):
+
+class MqttToRosBridge(Thread):
     def __init__(self):
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
         self.host       = 'localhost'
         self.port       = 1883
         self.client                 = mqtt.Client('Mqtt-to-Ros')
         self.client.connect(self.host, self.port)
+        self._mqtt_timer            = Timer(600.0, _start_mqtt)
+        self._mqtt_timer.start()
     
     def on_message(self, client, userdata, msg):
         # Stop timer when received the message
@@ -84,30 +78,21 @@ class MqttToRosBridge(threading.Thread):
         # Publish the mqtt message to ROS
         rospy.Publisher(msg.topic, String, queue_size=100).publish(mqtt_message)
         # # Start timer again
-        self._mqtt_timer            = threading.Timer(2.0, _finished_from_mqtt)
+        self._mqtt_timer            = Timer(2.0, _finished_from_mqtt)
         self._mqtt_timer.start()
     
     def run(self):
-        self._mqtt_timer            = threading.Timer(600.0, _start_mqtt)
-        self._mqtt_timer.start()
         self.client.on_message      = self.on_message
         self.client.loop_start()
-        self.client.subscribe('/exvis/#')
+        self.client.subscribe('/exvis/sub/#')
         print(f'MQTT topic:')
-        print(f'            /exvis/#')
-        # try:
-        #     self.client.loop_forever()
-        # except KeyboardInterrupt:
-        #     print('xxx')
-        #     self.client.disconnect()
-        #     sys.exit(1)
-        # timer = threading.Timer(2.0, _finished_from_mqtt)
-        # timer.start()
+        print(f'            /exvis/sub/#')
+
 
 def main():
     try:
-        print('\n------------------ Start the ROS-MQTT bridge ------------------\n')
-        print('Press [Ctrl+c] to stop the process ...')
+        print('\n--------------------------------- Start the ROS-MQTT bridge ---------------------------------\n\n')
+        print('Note : Press [Ctrl+c] to stop the process.')
         rospy.init_node('bridge_node', anonymous=True)
         t1 = RosToMqttBridge()
         t2 = MqttToRosBridge()
