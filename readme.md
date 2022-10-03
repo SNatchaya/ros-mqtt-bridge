@@ -6,7 +6,7 @@ The ROS-MQTT bridge provides a feature that allows for bidirectional communicati
 
 > Note: launch the `test_script.py` before launch the `bridge.py`, due to ROS-MQTT bridge can get the topic and message type from ros automatically.
 
-1.  Open the terminal,and add execution privilege the current owner user of the specified file.
+1.  Open the terminal,and xxx. (Note)
 
 ```script
 $ chmod +x test_bridge.sh
