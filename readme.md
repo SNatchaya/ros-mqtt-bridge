@@ -16,9 +16,26 @@ Each window in tmux terminal means ...
 
 | Window | Description |
 | ------ | ----------- |
-| `roscore_server`  | ROS server |
+| `ros_server`      | ROS server |
 | `mqtt_broker`     | MQTT broker (mosquitto) |
-| `tester`          | 1st pane: MQTT subscriber (subscribe from ROS publisher), 2nd pane: ROS subscriber (subscribe from MQTT publisher), 3rd pane: ROS publisher, and 4st pane: MQTT publisher |
+| `tester`          | 1st pane (0): MQTT subscriber (subscribe from ROS publisher), 2nd pane (1): ROS subscriber (subscribe from MQTT publisher), 3rd pane (2): ROS publisher, and 4st pane (3): MQTT publisher |
+
+```
+tester's window
+.-----------------------.-----------------------.
+| (0)                   | (1)                   |
+|                       |                       |
+|                       |                       |
+|                       |                       |
+|-----------------------|-----------------------|
+| (2)                   | (3)                   |
+|                       |                       |
+|                       |                       |
+|                       |                       |
+|-------------.---------'----.------------------|
+|0:ros_server |1:mqtt_broker |2:tester          |
+'-------------'--------------'------------------'
+```
 
 2. Open the new terminal and launch the `bridge.py` script.
 

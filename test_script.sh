@@ -7,7 +7,7 @@ tmux new-session -d -s $session
 
 # Run the ROS server in the 1st window
 window=0
-tmux rename-window -t $session:$window 'roscore_server'
+tmux rename-window -t $session:$window 'ros_server'
 tmux send-keys -t $session:$window 'roscore' ENTER
 
 # Run the mqtt server in the 2nd window
@@ -29,15 +29,5 @@ tmux select-pane -t 1
 tmux select-pane -t 0 
 tmux split-window -v  \; send-keys 'cd tester' ENTER \; send-keys 'rosbag play rosbag_test.bag' ENTER
 tmux select-pane -t 3 \; send-keys 'cd tester' ENTER \; send-keys 'python3 mqtt_pub.py' ENTER
-
-# # Run the publisher in the 4st window. The publisher files locate in scripts folder.
-# tmux new-window -t $session:$window -n 'publisher'
-# tmux send-keys -t $session:$window 'cd scripts' ENTER
-# # Mimick the ros publisher using rosbag from .bag file
-# tmux send-keys -t $session:$window 'rosbag play rosbag_test.bag'
-# tmux split-window -h
-# tmux send-keys -t $session:$window 'cd scripts' ENTER
-# # Mimick the mqtt publisher using mqtt_pub.py
-# tmux send-keys -t $session:$window 'python3 mqtt_pub.py'
 
 tmux attach-session -t $session
