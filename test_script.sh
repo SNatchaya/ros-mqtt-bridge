@@ -17,22 +17,27 @@ tmux send-keys -t $session:$window 'mosquitto -v' ENTER
 
 # Run the ros client and mqtt client in the 3rd window
 window=2
-tmux new-window -t $session:$window -n 'scriber'
+tmux new-window -t $session:$window -n 'tester'
+tmux split-window -h
+tmux split-window -v
+tmux select-pane -t 0
 # using rostopic echo <topic> to display the received mqtt messages
-!(sleep 1 && tmux send-keys -t $session:$window 'rostopic echo /exvis/sub/test' ENTER)              
-tmux split-window -h
+!(sleep 1 && tmux send-keys -t $session:$window 'mosquitto_sub -h localhost -t /exvis/#' ENTER)  
+tmux select-pane -t 1       
 # using mosquitto_sub -h localhost -t <topics> to display the received ros messages
-!(sleep 1 && tmux send-keys -t $session:$window 'mosquitto_sub -h localhost -t /exvis/#' ENTER )    
+!(sleep 1 && tmux send-keys -t $session:$window 'rostopic echo /exvis/sub/test' ENTER)  
+tmux select-pane -t 0 
+tmux split-window -v  \; send-keys 'cd tester' ENTER \; send-keys 'rosbag play rosbag_test.bag' ENTER
+tmux select-pane -t 3 \; send-keys 'cd tester' ENTER \; send-keys 'python3 mqtt_pub.py' ENTER
 
-# Run the publisher in the 4st window. The publisher files locate in scripts folder.
-window=3
-tmux new-window -t $session:$window -n 'publisher'
-tmux send-keys -t $session:$window 'cd scripts' ENTER
-# Mimick the ros publisher using rosbag from .bag file
-tmux send-keys -t $session:$window 'rosbag play rosbag_test.bag'
-tmux split-window -h
-tmux send-keys -t $session:$window 'cd scripts' ENTER
-# Mimick the mqtt publisher using mqtt_pub.py
-tmux send-keys -t $session:$window 'python3 mqtt_pub.py'
+# # Run the publisher in the 4st window. The publisher files locate in scripts folder.
+# tmux new-window -t $session:$window -n 'publisher'
+# tmux send-keys -t $session:$window 'cd scripts' ENTER
+# # Mimick the ros publisher using rosbag from .bag file
+# tmux send-keys -t $session:$window 'rosbag play rosbag_test.bag'
+# tmux split-window -h
+# tmux send-keys -t $session:$window 'cd scripts' ENTER
+# # Mimick the mqtt publisher using mqtt_pub.py
+# tmux send-keys -t $session:$window 'python3 mqtt_pub.py'
 
 tmux attach-session -t $session
